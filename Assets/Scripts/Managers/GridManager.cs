@@ -124,7 +124,7 @@ public class GridManager : MonoBehaviour
     }
 
 
-    // Distance function
+    // Distance functions
     public int DistanceFromCenter(int x, int y)
     {
         return Mathf.Abs(centerX - x) + Mathf.Abs(centerY - y);

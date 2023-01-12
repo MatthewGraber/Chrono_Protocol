@@ -62,6 +62,13 @@ public class BaseUnit : MonoBehaviour
         }
     }
 
+    public void Heal(int health)
+    {
+        HP += health;
+        if (HP > MAX_HP) 
+            HP = MAX_HP;
+    }
+
     public void FindAvailableSpaces()
     {
         availablePaths.Clear();
@@ -199,7 +206,7 @@ public class BaseUnit : MonoBehaviour
         }
     }
 
-    public void StartOfTurn()
+    virtual public void StartOfTurn()
     {
         movement = SPEED;
         actionsRemaining = 1;

@@ -106,6 +106,13 @@ public abstract class Tile : MonoBehaviour
         _moveHighlight.SetActive(false);
     }
 
+    
+    // Returns the distance between this tile and another tile
+    public int Distance(Tile t)
+    {
+        return (int) Mathf.Abs(pos.x - t.pos.x) + (int) Mathf.Abs(pos.y - t.pos.y);
+    }
+
     // Start is called before the first frame update
     void Start()
     {

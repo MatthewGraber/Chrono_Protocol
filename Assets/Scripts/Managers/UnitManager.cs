@@ -172,6 +172,10 @@ public class UnitManager : MonoBehaviour
         {
             hero.StartOfTurn();
         }
+        foreach(var building in AllBuildings)
+        {
+            building.StartOfTurn();
+        }
     }
 
     public void UpdatePlayerOptions()

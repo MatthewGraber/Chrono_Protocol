@@ -6,12 +6,12 @@ using UnityEngine;
 public class BaseAttack : MonoBehaviour
 {
     // Attack stats
-    protected int range;
-    protected bool lob;
-    protected int damage;
+    public int range;
+    public bool lob;
+    public int damage;
 
     // Attacking unit
-    protected BaseUnit attacker;
+    public BaseUnit attacker;
 
     public List<Vector2> cardinalDirections;
     public List<BaseUnit> availableTargets;
@@ -19,6 +19,7 @@ public class BaseAttack : MonoBehaviour
     public void FindTargets()
     {
         availableTargets.Clear();
+        Debug.Log("Searching for targets for " + attacker.UnitName);
 
         if (attacker.actionsRemaining > 0)
         {
@@ -92,10 +93,21 @@ public class BaseAttack : MonoBehaviour
         availableTargets = new List<BaseUnit>();
     }
 
+    public void init()
+    {
+        cardinalDirections = new List<Vector2>();
+        cardinalDirections.Add(new Vector2(0, 1));
+        cardinalDirections.Add(new Vector2(0, -1));
+        cardinalDirections.Add(new Vector2(1, 0));
+        cardinalDirections.Add(new Vector2(-1, 0));
+
+        availableTargets = new List<BaseUnit>();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        init();
     }
 
     // Update is called once per frame

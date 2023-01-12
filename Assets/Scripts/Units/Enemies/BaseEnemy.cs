@@ -39,7 +39,7 @@ public class BaseEnemy : BaseUnit
         {
             targetList += "\n" + target.ToString();
         }
-        Debug.Log("Available targets: " + targetList);
+        // Debug.Log("Available targets: " + targetList);
 
         switch (behaviour)
         {

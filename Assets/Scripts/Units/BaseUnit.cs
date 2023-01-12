@@ -28,12 +28,20 @@ public class BaseUnit : MonoBehaviour
     public List<List<Vector2>> availablePaths;
     public List<Vector2> availableSpaces;
 
+    public List<Vector2> currentPath;       // The unit's current destination
+    private float moveTimer = 0.5f;         // Frames until the unit moves one space
+    public float update = 0f;               // Time since last update
+
     public virtual void init()
     {
         availablePaths = new List<List<Vector2>>();
         availableSpaces = new List<Vector2>();
+        currentPath = new List<Vector2>();
+
         HP = MAX_HP;
         movement = SPEED;
+
+        this.enabled = true;
     }
 
     // Basic interaction functions
@@ -166,7 +174,8 @@ public class BaseUnit : MonoBehaviour
         }
     }
 
-    public void Move(Tile space)
+    // Old function
+    public void MoveOld(Tile space)
     {
         GridManager.Instance.ClearAllHighlights();
 
@@ -188,6 +197,23 @@ public class BaseUnit : MonoBehaviour
         foreach (var hero in UnitManager.Instance.AllHeroes)
             hero.UpdateSelf();
 
+    }
+
+    // New Function
+    public void Move(Tile space)
+    {
+        GridManager.Instance.ClearAllHighlights();
+
+        // If we 'moved' to the same space, immediately return
+        if (space == OccupiedTile) return;
+        foreach (List<Vector2> path in availablePaths)
+        {
+            if (path.Last().Equals(space.pos))
+            {
+                currentPath = path;
+                break;
+            }
+        }
     }
 
     public void Attack(BaseUnit enemy)
@@ -251,6 +277,17 @@ public class BaseUnit : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        update += Time.deltaTime;
+        if (update >= moveTimer)
+        {
+            update = 0f;
+            if (currentPath.Count > 0)
+            {
+                GridManager.Instance.GetTileAtPosition(currentPath[0]).SetUnit(this);
+                currentPath.RemoveAt(0);
+                movement -= 1;
+            }
+        }
         
     }
 }

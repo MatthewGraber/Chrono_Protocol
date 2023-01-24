@@ -59,6 +59,14 @@ PrefabInstance:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 5731671480983928220, guid: 0733c7a4b4fd288458ca5c8fa88345cf, type: 3}
+      propertyPath: m_SortingOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5735064422815896903, guid: 0733c7a4b4fd288458ca5c8fa88345cf, type: 3}
+      propertyPath: m_SortingOrder
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5768646465514760128, guid: 0733c7a4b4fd288458ca5c8fa88345cf, type: 3}
       propertyPath: m_SortingOrder
       value: 2

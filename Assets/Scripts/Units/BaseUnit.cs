@@ -22,18 +22,33 @@ public class BaseUnit : MonoBehaviour
     public int actionsRemaining = 1;
     public bool player => unitType == UnitType.Hero || unitType == UnitType.Building;
 
+    public int ID;
+    protected static int idIncrement = 0;
+
     [SerializeField] public BaseAttack attack;
 
 
     public List<List<Vector2>> availablePaths;
     public List<Vector2> availableSpaces;
 
+    protected List<Vector2> currentPath;
+
+    public float TIME_BETWEEN_MOVES = 0.1f;
+
+    // True while the character is acting
+    public bool acting = false;
+    public bool moving = false;
+
     public virtual void init()
     {
         availablePaths = new List<List<Vector2>>();
         availableSpaces = new List<Vector2>();
+        currentPath = new List<Vector2>();
         HP = MAX_HP;
         movement = SPEED;
+
+        idIncrement++;
+        ID = idIncrement;
     }
 
     // Basic interaction functions
@@ -166,7 +181,7 @@ public class BaseUnit : MonoBehaviour
         }
     }
 
-    public void Move(Tile space)
+    public void OldMove(Tile space)
     {
         GridManager.Instance.ClearAllHighlights();
 
@@ -188,6 +203,79 @@ public class BaseUnit : MonoBehaviour
         foreach (var hero in UnitManager.Instance.AllHeroes)
             hero.UpdateSelf();
 
+    }
+
+    public void Move(Tile space)
+    {
+        moving = true;
+        StartCoroutine(coMove(space));
+
+    }
+
+    IEnumerator coMove(Tile space)
+    {
+        // With this active, only some of the enemies take their turns
+        if (!UnitManager.Instance.UnitQueue.Contains(this) && UnitManager.Instance.ActingUnit != ID)
+        {
+            UnitManager.Instance.UnitQueue.Add(this);
+            UnityEngine.Debug.Log("Added unit to queue");
+        }
+        yield return new WaitUntil(() => UnitManager.Instance.ActingUnit == ID);
+
+        // With this active, all enemies take their turns simultaneously
+        // WaitForTurn();
+
+        GridManager.Instance.ClearAllHighlights();
+
+        // If we 'moved' to the same space, immediately return
+        if (space != OccupiedTile)
+        {
+            // Find the path the unit took and reduce their movement accordingly
+            foreach (List<Vector2> path in availablePaths)
+            {
+                if (path.Last().Equals(space.pos))
+                {
+                    currentPath = path;
+                    break;
+                }
+            }
+
+
+            if (currentPath != null)
+            {
+
+                for (int i = 0; i < currentPath.Count; i++)
+                {
+                    GridManager.Instance.GetTileAtPosition(currentPath[i]).SetUnit(this);
+                    movement--;
+                    yield return new WaitForSeconds(0.15f);
+                }
+            }
+        }        
+
+        UnitManager.Instance.UpdatePlayerOptions();
+        if (player)
+        {
+            UnitManager.Instance.DeactivateUnit();
+        }
+        UnityEngine.Debug.Log(UnitName + " finished moving");
+        moving = false;
+    }
+
+    public IEnumerator WaitForTurn()
+    {
+        if (!UnitManager.Instance.UnitQueue.Contains(this) && UnitManager.Instance.ActingUnit != ID)
+        {
+            UnitManager.Instance.UnitQueue.Add(this);
+            UnityEngine.Debug.Log("Added unit to queue");
+
+        }
+        yield return new WaitUntil(() => UnitManager.Instance.ActingUnit == ID);
+    }
+
+    public IEnumerator WaitSeconds(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
     }
 
     public void Attack(BaseUnit enemy)

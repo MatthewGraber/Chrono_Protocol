@@ -2849,6 +2849,9 @@ MonoBehaviour:
   AllHeroes: []
   AllEnemies: []
   AllBuildings: []
+  ActingUnit: 0
+  UnitQueue: []
+  EnemyTurnsFinished: 0
 --- !u!4 &1976211689
 Transform:
   m_ObjectHideFlags: 0

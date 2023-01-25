@@ -9,10 +9,10 @@ public class unitSelection : MonoBehaviour
 {
     public Text option1, option2, speed1, speed2, health1, health2, unitNo;
     int unitNum = 1;
-    public Toggle choice1, choice2;
+    [SerializeField] Toggle choice1, choice2;
     public List<ScriptableUnit> Heroes;
     public List<BaseHero> DisplayedHeroes;
-    selectedUnits unitSelect;
+    [SerializeField] selectedUnits unitSelect;
 
     private void Awake()
     {
@@ -23,24 +23,20 @@ public class unitSelection : MonoBehaviour
     void Start()
     {
 
-        var randomHero1 = RandomUnit<BaseHero>(UnitType.Hero);
-        var hero1 = Instantiate(randomHero1);
-        DisplayedHeroes.Add(hero1);
-        var randomHero2 = RandomUnit<BaseHero>(UnitType.Hero);
-        var hero2 = Instantiate(randomHero2);
-        DisplayedHeroes.Add(hero2);
-        
+        RandomizeSelection();
+
+
     }
 
     // Update is called once per frame
     void Update()
     {
         unitNo.text = "Selecting Unit " + unitNum;
-        option1.text = DisplayedHeroes[0].GetInfo();
-        health1.text = "Health: "+DisplayedHeroes[0].GetHP().ToString();
+        option1.text = DisplayedHeroes[0].UnitName;
+        health1.text = "Health: "+DisplayedHeroes[0].GetMaxHP().ToString();
         speed1.text = "Speed: " + DisplayedHeroes[0].GetSpeed().ToString();
-        option2.text = DisplayedHeroes[1].GetInfo();
-        health2.text = "Health: " + DisplayedHeroes[1].GetHP().ToString();
+        option2.text = DisplayedHeroes[1].UnitName;
+        health2.text = "Health: " + DisplayedHeroes[1].GetMaxHP().ToString();
         speed2.text = "Speed: " + DisplayedHeroes[1].GetSpeed().ToString();
 
     }
@@ -52,21 +48,19 @@ public class unitSelection : MonoBehaviour
             if (choice1.isOn == true)
             {
                 unitSelect.SpawnMe.Add(DisplayedHeroes[0]);
-                DisplayedHeroes.Clear();
+                Debug.Log("Adding choice 1");
 
             }
-            if (choice2.isOn == true)
+            else
             {
                 unitSelect.SpawnMe.Add(DisplayedHeroes[1]);
-                DisplayedHeroes.Clear();
-
+                Debug.Log("Adding choice 1");
             }
-            var randomHero1 = RandomUnit<BaseHero>(UnitType.Hero);
-            var hero1 = Instantiate(randomHero1);
-            DisplayedHeroes.Add(hero1);
-            var randomHero2 = RandomUnit<BaseHero>(UnitType.Hero);
-            var hero2 = Instantiate(randomHero2);
-            DisplayedHeroes.Add(hero2);
+
+            // Ensure that the unit isn't destroyed when the next scene loads
+            DontDestroyOnLoad(unitSelect.SpawnMe[unitNum - 1]);
+
+            RandomizeSelection();
 
 
 
@@ -77,13 +71,8 @@ public class unitSelection : MonoBehaviour
 
         if (unitNum == 3)
         {
-            var randomHero1 = RandomUnit<BaseHero>(UnitType.Hero);
-            var hero1 = Instantiate(randomHero1);
-            DisplayedHeroes.Add(hero1);
-            var randomHero2 = RandomUnit<BaseHero>(UnitType.Hero);
-            var hero2 = Instantiate(randomHero2);
-            DisplayedHeroes.Add(hero2);
-            
+            //RandomizeSelection();
+
             unitNum = 1;
 
             SceneManager.LoadScene(1);
@@ -98,6 +87,25 @@ public class unitSelection : MonoBehaviour
     private T RandomUnit<T>(UnitType unitType) where T : BaseUnit
     {
         return (T) Heroes.Where(u => u.unitType == unitType).OrderBy(o => Random.value).First().UnitPrefab;
+    }
+
+    private void RandomizeSelection()
+    {
+        var randomHero1 = RandomUnit<BaseHero>(UnitType.Hero);
+        var hero1 = Instantiate(randomHero1);
+        var randomHero2 = RandomUnit<BaseHero>(UnitType.Hero);
+        var hero2 = Instantiate(randomHero2);
+        
+        // Ensure that both heroes are different
+        while (hero1.UnitName == hero2.UnitName)
+        {
+            randomHero2 = RandomUnit<BaseHero>(UnitType.Hero);
+            hero2 = Instantiate(randomHero2);
+        }
+
+        DisplayedHeroes.Clear();
+        DisplayedHeroes.Add(hero1);
+        DisplayedHeroes.Add(hero2);
     }
 
 

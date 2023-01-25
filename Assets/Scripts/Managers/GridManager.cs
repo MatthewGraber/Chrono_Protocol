@@ -80,8 +80,8 @@ public class GridManager : MonoBehaviour
     // Returns a tile that the enemies can spawn on
     public Tile GetEnemySpawnTile()
     {
-        return _tiles.Where(t => ((t.Key.x > _width - 2) || (t.Key.x < 1)) 
-                                || ((t.Key.y > _height - 2) || (t.Key.y < 1))
+        return _tiles.Where(t => (((t.Key.x > _width - 2) || (t.Key.x < 1)) 
+                                || ((t.Key.y > _height - 2) || (t.Key.y < 1)))
                                 && t.Value.walkable).OrderBy(t => UnityEngine.Random.value).First().Value;
     }
 

@@ -322,6 +322,10 @@ public class BaseUnit : MonoBehaviour
     {
         return HP;
     }
+    public int GetMaxHP()
+    {
+        return MAX_HP;
+    }
     public int GetMovement()
     {
         return movement;
@@ -335,7 +339,7 @@ public class BaseUnit : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        init();
     }
 
     // Update is called once per frame

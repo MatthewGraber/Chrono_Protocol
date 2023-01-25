@@ -20,7 +20,7 @@ public class UnitManager : MonoBehaviour
     public List<BaseUnit> UnitQueue;
     public int EnemyTurnsFinished = 0;
 
-    selectedUnits unitSelect;
+    //selectedUnits unitSelect;
 
     void Awake()
     {
@@ -40,9 +40,10 @@ public class UnitManager : MonoBehaviour
     public void SpawnHeroes()
     {
         //var heroCount = 3;
-        unitSelect = GetComponent<selectedUnits>();
-        foreach(BaseHero x in unitSelect.SpawnMe)
+        //unitSelect = GetComponent<selectedUnits>();
+        foreach(BaseHero x in selectedUnits.Instance.SpawnMe)
         {
+            AllHeroes.Add(x);
             var randomSpawnTile = GridManager.Instance.GetHeroSpawnTile();
             x.init();
             randomSpawnTile.SetUnit(x);

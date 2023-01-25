@@ -9,8 +9,6 @@ public class BaseEnemy : BaseUnit
     public Behaviour behaviour;
     public bool boss;
 
-    bool attacking = false;
-
     private List<BaseUnit> availableTargets;
 
     override public void init()
@@ -34,27 +32,6 @@ public class BaseEnemy : BaseUnit
 
     public void Turn()
     {
-        acting = true;
-        StartCoroutine(ieTurn());
-    }
-
-    public IEnumerator ieTurn()
-    {
-        /*if (!(UnitManager.Instance.UnitQueue.Contains(this)) && UnitManager.Instance.ActingUnit != this)
-        {
-
-        }*/
-        while (UnitManager.Instance.ActingUnit != ID) yield return null;
-        // WaitForTurn();
-
-        // Flash the tile to indicate to the player that this unit is about to activate
-        OccupiedTile.MoveHighlight(true);
-        yield return new WaitForSeconds(0.5f);
-        OccupiedTile.MoveHighlight(false);
-        yield return new WaitForSeconds(0.5f);
-
-        Debug.Log(UnitName + " continuing turn");
-
         FindAvailableSpaces();
         FindTargets();
         string targetList = "";
@@ -67,25 +44,17 @@ public class BaseEnemy : BaseUnit
         switch (behaviour)
         {
             case Behaviour.Aggressive:
-                StartCoroutine(Aggressive()); break;
+                Aggressive(); break;
 
             case Behaviour.Challenger:
-                StartCoroutine(Challenger()); break;
+                Challenger(); break;
 
             case Behaviour.BuildingEater:
-                StartCoroutine(BuildingEater()); break;
+                BuildingEater(); break;
             default: break;
         }
-
-        // Wait until the unit has finished moving before ending the turn
-        while (acting) yield return null;
-
-        Debug.Log(UnitName + " ending turn");
-
         movement = SPEED;
         actionsRemaining = 1;
-        UnitManager.Instance.EnemyTurnsFinished++;
-        UnitManager.Instance.DeactivateUnit();
     }
 
 
@@ -124,7 +93,7 @@ public class BaseEnemy : BaseUnit
 
     // Challenger behaviour
     // Finds the target with the highest HP and attacks it
-    private IEnumerator Challenger()
+    private void Challenger()
     {
         List<BaseUnit> preferedTargets = new List<BaseUnit>();
 
@@ -137,8 +106,7 @@ public class BaseEnemy : BaseUnit
         if (preferedTargets.Count > 0)
         {
             preferedTargets = Prioritize<BaseUnit>(preferedTargets, Priorities.HighHP);
-            StartCoroutine(MoveAndAttack(preferedTargets[0]));
-            while (moving || attacking) yield return null;
+            MoveAndAttack(preferedTargets[0]);
         }
 
         // after attacking, move towards the center of the map
@@ -149,14 +117,11 @@ public class BaseEnemy : BaseUnit
             availablePaths = Prioritize<Vector2>(availablePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(availablePaths[0].Last()));
         }
-
-        while (moving) yield return null;
-        acting = false;
     }
 
     // Aggressive behaviour
     // Finds the target with the lowest HP and attacks it
-    private IEnumerator Aggressive()
+    private void Aggressive()
     {
         List<BaseUnit> preferedTargets = new List<BaseUnit>();
 
@@ -169,8 +134,7 @@ public class BaseEnemy : BaseUnit
         if (preferedTargets.Count > 0)
         {
             preferedTargets = Prioritize<BaseUnit>(preferedTargets, Priorities.LowHP);
-            StartCoroutine(MoveAndAttack(preferedTargets[0]));
-            while (moving || attacking) yield return null;
+            MoveAndAttack(preferedTargets[0]);
         }
 
         // after attacking, move towards the center of the map
@@ -181,15 +145,12 @@ public class BaseEnemy : BaseUnit
             availablePaths = Prioritize<Vector2>(availablePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(availablePaths[0].Last()));
         }
-
-        while (moving || attacking) yield return null;
-        acting = false;
     }
 
 
     // BuildingEater behaviour
     // BuildingEaters will EXCLUSIVELY target buildings
-    private IEnumerator BuildingEater()
+    private void BuildingEater()
     {
         List<BaseUnit> preferedTargets = new List<BaseUnit>();
 
@@ -214,8 +175,7 @@ public class BaseEnemy : BaseUnit
                 targetList += "\n" + target.ToString();
             }
             Debug.Log("Prefered targets after prioritizing: " + targetList);
-            StartCoroutine(MoveAndAttack(preferedTargets[0]));
-            while (moving || attacking) yield return null;
+            MoveAndAttack(preferedTargets[0]);
         }
 
         // after attacking, move towards the center of the map
@@ -226,15 +186,12 @@ public class BaseEnemy : BaseUnit
             availablePaths = Prioritize<Vector2>(availablePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(availablePaths[0].Last()));
         }
-
-        while (moving) yield return null;
-        acting = false;
     }
 
 
 
     // Attacks a target
-    private IEnumerator MoveAndAttack(BaseUnit target)
+    private bool MoveAndAttack(BaseUnit target)
     {
         List<List<Vector2>> possilbePaths = new List<List<Vector2>>();
         foreach (var path in availablePaths)
@@ -246,29 +203,17 @@ public class BaseEnemy : BaseUnit
             }
         }
 
-        // WaitSeconds(1.0f);
-
         if (possilbePaths.Count > 0)
         {
-            attacking = true;
-
             possilbePaths = Prioritize<Vector2>(possilbePaths, Priorities.CloseToCenter);
             possilbePaths = Prioritize<Vector2>(possilbePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(possilbePaths[0].Last()));
-            
-            // Wait until we finish moving for the attack animation
-            while (moving) yield return null;
-
-            target.OccupiedTile.AttackHighlight(true);
-            yield return new WaitForSeconds(0.5f);
-            target.OccupiedTile.AttackHighlight(false);
             attack.Attack(target);
-            yield return new WaitForSeconds(0.5f);
-            attacking = false;
+            return true;
         }
         else
         {
-            yield break;
+            return false;
         }
     }
 

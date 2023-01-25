@@ -16,10 +16,7 @@ public class UnitManager : MonoBehaviour
     public List<BaseEnemy> AllEnemies;
     public List<BaseBuilding> AllBuildings;
 
-    public int ActingUnit;
-    public List<BaseUnit> UnitQueue;
-
-    public int EnemyTurnsFinished = 0;
+    selectedUnits unitSelect;
 
     void Awake()
     {
@@ -29,20 +26,24 @@ public class UnitManager : MonoBehaviour
         AllHeroes = new List<BaseHero>();
         AllEnemies = new List<BaseEnemy>();
         AllBuildings = new List<BaseBuilding>();
-        UnitQueue = new List<BaseUnit>();
-
-        this.enabled = true;
-
     }
 
 
     // Spawns the initial set of heroes
     public void SpawnHeroes()
     {
-        var heroCount = 3;
-
-        for (int i = 0; i < heroCount; i++)
+        //var heroCount = 3;
+        unitSelect = GetComponent<selectedUnits>();
+        foreach(BaseHero x in unitSelect.SpawnMe)
         {
+            var randomSpawnTile = GridManager.Instance.GetHeroSpawnTile();
+            x.init();
+            randomSpawnTile.SetUnit(x);
+        }
+
+        /*for (int i = 0; i < heroCount; i++)
+        {
+            
             var randomPrefab = GetRandomUnit<BaseHero>(UnitType.Hero);
             var spawnedHero = Instantiate(randomPrefab);
             var randomSpawnTile = GridManager.Instance.GetHeroSpawnTile();
@@ -50,7 +51,8 @@ public class UnitManager : MonoBehaviour
             AllHeroes.Add(spawnedHero);
             spawnedHero.init();
             randomSpawnTile.SetUnit(spawnedHero);
-        }
+
+        }*/
 
         GameManager.Instance.UpdateGameState(GameState.SpawnEnemies);
     }
@@ -175,44 +177,6 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    public bool SetActingUnit(BaseUnit unit)
-    {
-        if (ActingUnit != 0)
-        {
-            return false;
-        }
-        else
-        {
-            ActingUnit = unit.ID;
-            unit.acting = true;
-            return false;
-        }
-    }
-
-    public void DeactivateUnit()
-    {
-        ActingUnit = 0;
-    }
-
-    public void UpdateActiveUnit()
-    {
-        if (ActingUnit != 0) {
-            return;
-        }
-        else if (UnitQueue.Count <= 0) {
-            return;
-        }
-        else
-        {
-            ActingUnit = UnitQueue[0].ID;
-            Debug.Log("Acting Unit set to ID: " + ActingUnit);
-            if (GameManager.Instance.State == GameState.EnemyTurn)
-                ((BaseEnemy) UnitQueue[0]).Turn();
-
-            UnitQueue.RemoveAt(0);
-        }
-    }
-
     public void UpkeepHeroes()
     {
         foreach(var hero in AllHeroes)
@@ -241,18 +205,7 @@ public class UnitManager : MonoBehaviour
     {
         foreach (var enemy in AllEnemies)
         {
-            // enemy.Turn();
-            UnitQueue.Add(enemy);
-        }
-    }
-
-    void Update()
-    {
-        UpdateActiveUnit();
-        if (EnemyTurnsFinished >= AllEnemies.Count)
-        {
-            EnemyTurnsFinished = 0;
-            GameManager.Instance.VictoryCheck();
+            enemy.Turn();
         }
     }
 

@@ -19,7 +19,7 @@ public class BaseAttack : MonoBehaviour
     public void FindTargets()
     {
         availableTargets.Clear();
-        // Debug.Log("Searching for targets for " + attacker.UnitName);
+        Debug.Log("Searching for targets for " + attacker.UnitName);
 
         if (attacker.actionsRemaining > 0)
         {

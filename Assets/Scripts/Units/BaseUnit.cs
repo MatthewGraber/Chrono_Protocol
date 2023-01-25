@@ -22,18 +22,33 @@ public class BaseUnit : MonoBehaviour
     public int actionsRemaining = 1;
     public bool player => unitType == UnitType.Hero || unitType == UnitType.Building;
 
+    public int ID;
+    protected static int idIncrement = 0;
+
     [SerializeField] public BaseAttack attack;
 
 
     public List<List<Vector2>> availablePaths;
     public List<Vector2> availableSpaces;
 
+    protected List<Vector2> currentPath;
+
+    public float TIME_BETWEEN_MOVES = 0.1f;
+
+    // True while the character is acting
+    public bool acting = false;
+    public bool moving = false;
+
     public virtual void init()
     {
         availablePaths = new List<List<Vector2>>();
         availableSpaces = new List<Vector2>();
+        currentPath = new List<Vector2>();
         HP = MAX_HP;
         movement = SPEED;
+
+        idIncrement++;
+        ID = idIncrement;
     }
 
     // Basic interaction functions
@@ -42,15 +57,16 @@ public class BaseUnit : MonoBehaviour
         HP -= damage;
         if (HP <= 0)
         {
-            switch (unitType) {
+            switch (unitType)
+            {
                 case UnitType.Hero:
-                    UnitManager.Instance.AllHeroes.Remove((BaseHero) this);
+                    UnitManager.Instance.AllHeroes.Remove((BaseHero)this);
                     break;
                 case UnitType.Building:
-                    UnitManager.Instance.AllBuildings.Remove((BaseBuilding) this);
+                    UnitManager.Instance.AllBuildings.Remove((BaseBuilding)this);
                     break;
                 case UnitType.Enemy:
-                    UnitManager.Instance.AllEnemies.Remove((BaseEnemy) this);
+                    UnitManager.Instance.AllEnemies.Remove((BaseEnemy)this);
                     break;
                 default:
                     break;
@@ -65,7 +81,7 @@ public class BaseUnit : MonoBehaviour
     public void Heal(int health)
     {
         HP += health;
-        if (HP > MAX_HP) 
+        if (HP > MAX_HP)
             HP = MAX_HP;
     }
 
@@ -113,7 +129,8 @@ public class BaseUnit : MonoBehaviour
             {
                 // Check to see if we've explored this tile already
                 if (explored.Contains(space)) { }
-                else {
+                else
+                {
 
                     // Add the tile to list of explored tiles
                     explored.Add(space);
@@ -138,7 +155,7 @@ public class BaseUnit : MonoBehaviour
         }
 
         // Add the ends of all paths to availableSpaces
-        foreach(List<Vector2> path in availablePaths)
+        foreach (List<Vector2> path in availablePaths)
         {
             if (!(availableSpaces.Contains(path.Last())))
                 availableSpaces.Add(path.Last());
@@ -148,7 +165,7 @@ public class BaseUnit : MonoBehaviour
 
     public void ShowHighlightMoveTiles(bool select = true)
     {
-        foreach(Vector2 pos in availableSpaces)
+        foreach (Vector2 pos in availableSpaces)
         {
             Tile space = GridManager.Instance.GetTileAtPosition(pos);
             space.MoveHighlight(select);
@@ -166,7 +183,7 @@ public class BaseUnit : MonoBehaviour
         }
     }
 
-    public void Move(Tile space)
+    public void OldMove(Tile space)
     {
         GridManager.Instance.ClearAllHighlights();
 
@@ -188,6 +205,79 @@ public class BaseUnit : MonoBehaviour
         foreach (var hero in UnitManager.Instance.AllHeroes)
             hero.UpdateSelf();
 
+    }
+
+    public void Move(Tile space)
+    {
+        moving = true;
+        StartCoroutine(coMove(space));
+
+    }
+
+    IEnumerator coMove(Tile space)
+    {
+        // With this active, only some of the enemies take their turns
+        if (!UnitManager.Instance.UnitQueue.Contains(this) && UnitManager.Instance.ActingUnit != ID)
+        {
+            UnitManager.Instance.UnitQueue.Add(this);
+            UnityEngine.Debug.Log("Added unit to queue");
+        }
+        yield return new WaitUntil(() => UnitManager.Instance.ActingUnit == ID);
+
+        // With this active, all enemies take their turns simultaneously
+        // WaitForTurn();
+
+        GridManager.Instance.ClearAllHighlights();
+
+        // If we 'moved' to the same space, immediately return
+        if (space != OccupiedTile)
+        {
+            // Find the path the unit took and reduce their movement accordingly
+            foreach (List<Vector2> path in availablePaths)
+            {
+                if (path.Last().Equals(space.pos))
+                {
+                    currentPath = path;
+                    break;
+                }
+            }
+
+
+            if (currentPath != null)
+            {
+
+                for (int i = 0; i < currentPath.Count; i++)
+                {
+                    GridManager.Instance.GetTileAtPosition(currentPath[i]).SetUnit(this);
+                    movement--;
+                    yield return new WaitForSeconds(0.15f);
+                }
+            }
+        }
+
+        UnitManager.Instance.UpdatePlayerOptions();
+        if (player)
+        {
+            UnitManager.Instance.DeactivateUnit();
+        }
+        UnityEngine.Debug.Log(UnitName + " finished moving");
+        moving = false;
+    }
+
+    public IEnumerator WaitForTurn()
+    {
+        if (!UnitManager.Instance.UnitQueue.Contains(this) && UnitManager.Instance.ActingUnit != ID)
+        {
+            UnitManager.Instance.UnitQueue.Add(this);
+            UnityEngine.Debug.Log("Added unit to queue");
+
+        }
+        yield return new WaitUntil(() => UnitManager.Instance.ActingUnit == ID);
+    }
+
+    public IEnumerator WaitSeconds(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
     }
 
     public void Attack(BaseUnit enemy)
@@ -216,7 +306,7 @@ public class BaseUnit : MonoBehaviour
     virtual public string GetInfo()
     {
         String info = UnitName + "\nHP: " + HP.ToString() + "/" + MAX_HP.ToString() + "\nSpeed: " + SPEED;
-        
+
         return info;
     }
 
@@ -245,12 +335,12 @@ public class BaseUnit : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

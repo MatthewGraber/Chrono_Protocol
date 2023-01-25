@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour
             case GameState.EnemyTurn:
                 UnitManager.Instance.EnemyTurn();
                 turn++;
-                VictoryCheck();
+                //VictoryCheck();
                 break;
             case GameState.Victory:
                 MenuManager.Instance.showVictory(true);
@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void VictoryCheck()
+    public void VictoryCheck()
     {
         if (UnitManager.Instance.AllBuildings.Count == 0)  // TODO: add victory logic
         {
@@ -89,6 +89,11 @@ public class GameManager : MonoBehaviour
         {
             UpdateGameState(GameState.SpawnEnemies);
         }
+    }
+
+    public IEnumerator WaitSeconds(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
     }
 
     // Update is called once per frame

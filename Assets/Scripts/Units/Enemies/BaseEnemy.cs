@@ -9,6 +9,8 @@ public class BaseEnemy : BaseUnit
     public Behaviour behaviour;
     public bool boss;
 
+    bool attacking = false;
+
     private List<BaseUnit> availableTargets;
 
     override public void init()
@@ -21,17 +23,38 @@ public class BaseEnemy : BaseUnit
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void Turn()
     {
+        acting = true;
+        StartCoroutine(ieTurn());
+    }
+
+    public IEnumerator ieTurn()
+    {
+        /*if (!(UnitManager.Instance.UnitQueue.Contains(this)) && UnitManager.Instance.ActingUnit != this)
+        {
+
+        }*/
+        while (UnitManager.Instance.ActingUnit != ID) yield return null;
+        // WaitForTurn();
+
+        // Flash the tile to indicate to the player that this unit is about to activate
+        OccupiedTile.MoveHighlight(true);
+        yield return new WaitForSeconds(0.5f);
+        OccupiedTile.MoveHighlight(false);
+        yield return new WaitForSeconds(0.5f);
+
+        Debug.Log(UnitName + " continuing turn");
+
         FindAvailableSpaces();
         FindTargets();
         string targetList = "";
@@ -44,17 +67,25 @@ public class BaseEnemy : BaseUnit
         switch (behaviour)
         {
             case Behaviour.Aggressive:
-                Aggressive(); break;
+                StartCoroutine(Aggressive()); break;
 
             case Behaviour.Challenger:
-                Challenger(); break;
+                StartCoroutine(Challenger()); break;
 
             case Behaviour.BuildingEater:
-                BuildingEater(); break;
+                StartCoroutine(BuildingEater()); break;
             default: break;
         }
+
+        // Wait until the unit has finished moving before ending the turn
+        while (acting) yield return null;
+
+        Debug.Log(UnitName + " ending turn");
+
         movement = SPEED;
         actionsRemaining = 1;
+        UnitManager.Instance.EnemyTurnsFinished++;
+        UnitManager.Instance.DeactivateUnit();
     }
 
 
@@ -93,7 +124,7 @@ public class BaseEnemy : BaseUnit
 
     // Challenger behaviour
     // Finds the target with the highest HP and attacks it
-    private void Challenger()
+    private IEnumerator Challenger()
     {
         List<BaseUnit> preferedTargets = new List<BaseUnit>();
 
@@ -106,7 +137,8 @@ public class BaseEnemy : BaseUnit
         if (preferedTargets.Count > 0)
         {
             preferedTargets = Prioritize<BaseUnit>(preferedTargets, Priorities.HighHP);
-            MoveAndAttack(preferedTargets[0]);
+            StartCoroutine(MoveAndAttack(preferedTargets[0]));
+            while (moving || attacking) yield return null;
         }
 
         // after attacking, move towards the center of the map
@@ -117,11 +149,14 @@ public class BaseEnemy : BaseUnit
             availablePaths = Prioritize<Vector2>(availablePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(availablePaths[0].Last()));
         }
+
+        while (moving) yield return null;
+        acting = false;
     }
 
     // Aggressive behaviour
     // Finds the target with the lowest HP and attacks it
-    private void Aggressive()
+    private IEnumerator Aggressive()
     {
         List<BaseUnit> preferedTargets = new List<BaseUnit>();
 
@@ -134,7 +169,8 @@ public class BaseEnemy : BaseUnit
         if (preferedTargets.Count > 0)
         {
             preferedTargets = Prioritize<BaseUnit>(preferedTargets, Priorities.LowHP);
-            MoveAndAttack(preferedTargets[0]);
+            StartCoroutine(MoveAndAttack(preferedTargets[0]));
+            while (moving || attacking) yield return null;
         }
 
         // after attacking, move towards the center of the map
@@ -145,12 +181,15 @@ public class BaseEnemy : BaseUnit
             availablePaths = Prioritize<Vector2>(availablePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(availablePaths[0].Last()));
         }
+
+        while (moving || attacking) yield return null;
+        acting = false;
     }
 
 
     // BuildingEater behaviour
     // BuildingEaters will EXCLUSIVELY target buildings
-    private void BuildingEater()
+    private IEnumerator BuildingEater()
     {
         List<BaseUnit> preferedTargets = new List<BaseUnit>();
 
@@ -175,7 +214,8 @@ public class BaseEnemy : BaseUnit
                 targetList += "\n" + target.ToString();
             }
             Debug.Log("Prefered targets after prioritizing: " + targetList);
-            MoveAndAttack(preferedTargets[0]);
+            StartCoroutine(MoveAndAttack(preferedTargets[0]));
+            while (moving || attacking) yield return null;
         }
 
         // after attacking, move towards the center of the map
@@ -186,12 +226,15 @@ public class BaseEnemy : BaseUnit
             availablePaths = Prioritize<Vector2>(availablePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(availablePaths[0].Last()));
         }
+
+        while (moving) yield return null;
+        acting = false;
     }
 
 
 
     // Attacks a target
-    private bool MoveAndAttack(BaseUnit target)
+    private IEnumerator MoveAndAttack(BaseUnit target)
     {
         List<List<Vector2>> possilbePaths = new List<List<Vector2>>();
         foreach (var path in availablePaths)
@@ -203,17 +246,29 @@ public class BaseEnemy : BaseUnit
             }
         }
 
+        // WaitSeconds(1.0f);
+
         if (possilbePaths.Count > 0)
         {
+            attacking = true;
+
             possilbePaths = Prioritize<Vector2>(possilbePaths, Priorities.CloseToCenter);
             possilbePaths = Prioritize<Vector2>(possilbePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(possilbePaths[0].Last()));
+
+            // Wait until we finish moving for the attack animation
+            while (moving) yield return null;
+
+            target.OccupiedTile.AttackHighlight(true);
+            yield return new WaitForSeconds(0.5f);
+            target.OccupiedTile.AttackHighlight(false);
             attack.Attack(target);
-            return true;
+            yield return new WaitForSeconds(0.5f);
+            attacking = false;
         }
         else
         {
-            return false;
+            yield break;
         }
     }
 
@@ -231,19 +286,19 @@ public class BaseEnemy : BaseUnit
             {
                 // Close to center
                 // Uses a list of Vecor2's or a list of paths
-                case Priorities.CloseToCenter:        
-                    scores.Add(GridManager.Instance.DistanceFromCenter((Vector2) thingi));
+                case Priorities.CloseToCenter:
+                    scores.Add(GridManager.Instance.DistanceFromCenter((Vector2)thingi));
                     break;
 
                 // Low HP
                 // Uses a list of units
                 case Priorities.LowHP:
-                    scores.Add(((BaseUnit) thingi).GetHP()); break;
+                    scores.Add(((BaseUnit)thingi).GetHP()); break;
 
                 // Building
                 // Uses a list of units
                 case Priorities.Building:
-                    if (((BaseUnit) thingi).unitType == UnitType.Building)
+                    if (((BaseUnit)thingi).unitType == UnitType.Building)
                         scores.Add(1);
                     else
                         scores.Add(0);
@@ -252,7 +307,7 @@ public class BaseEnemy : BaseUnit
                 // Hero
                 // Uses a list of units
                 case Priorities.Hero:
-                    if (((BaseUnit) thingi).unitType == UnitType.Hero)
+                    if (((BaseUnit)thingi).unitType == UnitType.Hero)
                         scores.Add(1);
                     else
                         scores.Add(0);
@@ -280,7 +335,8 @@ public class BaseEnemy : BaseUnit
                     {
                         highPriority.Add(things[i]);
                     }
-                    else if (scores[i] < best) {
+                    else if (scores[i] < best)
+                    {
                         highPriority.Clear();
                         best = scores[i];
                         highPriority.Add(things[i]);

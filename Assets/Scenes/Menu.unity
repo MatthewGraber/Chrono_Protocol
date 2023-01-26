@@ -1142,10 +1142,11 @@ MonoBehaviour:
   health1: {fileID: 2031857753}
   health2: {fileID: 1308806421}
   unitNo: {fileID: 2009840620}
-  choice1: {fileID: 1301333692}
-  choice2: {fileID: 1500518555}
+  choice1: {fileID: 1301333694}
+  choice2: {fileID: 1500518557}
   Heroes: []
   DisplayedHeroes: []
+  unitSelect: {fileID: 1559013624}
 --- !u!1 &1148258853
 GameObject:
   m_ObjectHideFlags: 0

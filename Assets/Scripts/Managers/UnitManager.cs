@@ -18,8 +18,9 @@ public class UnitManager : MonoBehaviour
 
     public int ActingUnit;
     public List<BaseUnit> UnitQueue;
-
     public int EnemyTurnsFinished = 0;
+
+    //selectedUnits unitSelect;
 
     void Awake()
     {
@@ -30,7 +31,6 @@ public class UnitManager : MonoBehaviour
         AllEnemies = new List<BaseEnemy>();
         AllBuildings = new List<BaseBuilding>();
         UnitQueue = new List<BaseUnit>();
-
         this.enabled = true;
 
     }
@@ -39,10 +39,19 @@ public class UnitManager : MonoBehaviour
     // Spawns the initial set of heroes
     public void SpawnHeroes()
     {
-        var heroCount = 3;
-
-        for (int i = 0; i < heroCount; i++)
+        //var heroCount = 3;
+        //unitSelect = GetComponent<selectedUnits>();
+        foreach(BaseHero x in selectedUnits.Instance.SpawnMe)
         {
+            AllHeroes.Add(x);
+            var randomSpawnTile = GridManager.Instance.GetHeroSpawnTile();
+            x.init();
+            randomSpawnTile.SetUnit(x);
+        }
+
+        /*for (int i = 0; i < heroCount; i++)
+        {
+            
             var randomPrefab = GetRandomUnit<BaseHero>(UnitType.Hero);
             var spawnedHero = Instantiate(randomPrefab);
             var randomSpawnTile = GridManager.Instance.GetHeroSpawnTile();
@@ -50,7 +59,8 @@ public class UnitManager : MonoBehaviour
             AllHeroes.Add(spawnedHero);
             spawnedHero.init();
             randomSpawnTile.SetUnit(spawnedHero);
-        }
+
+        }*/
 
         GameManager.Instance.UpdateGameState(GameState.SpawnEnemies);
     }
@@ -175,6 +185,7 @@ public class UnitManager : MonoBehaviour
         }
     }
 
+    // Active unit functions
     public bool SetActingUnit(BaseUnit unit)
     {
         if (ActingUnit != 0)
@@ -188,18 +199,18 @@ public class UnitManager : MonoBehaviour
             return false;
         }
     }
-
     public void DeactivateUnit()
     {
         ActingUnit = 0;
     }
-
     public void UpdateActiveUnit()
     {
-        if (ActingUnit != 0) {
+        if (ActingUnit != 0)
+        {
             return;
         }
-        else if (UnitQueue.Count <= 0) {
+        else if (UnitQueue.Count <= 0)
+        {
             return;
         }
         else
@@ -207,11 +218,11 @@ public class UnitManager : MonoBehaviour
             ActingUnit = UnitQueue[0].ID;
             Debug.Log("Acting Unit set to ID: " + ActingUnit);
             if (GameManager.Instance.State == GameState.EnemyTurn)
-                ((BaseEnemy) UnitQueue[0]).Turn();
-
+                ((BaseEnemy)UnitQueue[0]).Turn();
             UnitQueue.RemoveAt(0);
         }
     }
+
 
     public void UpkeepHeroes()
     {
@@ -245,7 +256,6 @@ public class UnitManager : MonoBehaviour
             UnitQueue.Add(enemy);
         }
     }
-
     void Update()
     {
         UpdateActiveUnit();

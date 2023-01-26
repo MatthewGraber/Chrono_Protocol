@@ -23,13 +23,13 @@ public class BaseEnemy : BaseUnit
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void Turn()
@@ -255,7 +255,7 @@ public class BaseEnemy : BaseUnit
             possilbePaths = Prioritize<Vector2>(possilbePaths, Priorities.CloseToCenter);
             possilbePaths = Prioritize<Vector2>(possilbePaths, Priorities.Close);
             Move(GridManager.Instance.GetTileAtPosition(possilbePaths[0].Last()));
-            
+
             // Wait until we finish moving for the attack animation
             while (moving) yield return null;
 
@@ -286,19 +286,19 @@ public class BaseEnemy : BaseUnit
             {
                 // Close to center
                 // Uses a list of Vecor2's or a list of paths
-                case Priorities.CloseToCenter:        
-                    scores.Add(GridManager.Instance.DistanceFromCenter((Vector2) thingi));
+                case Priorities.CloseToCenter:
+                    scores.Add(GridManager.Instance.DistanceFromCenter((Vector2)thingi));
                     break;
 
                 // Low HP
                 // Uses a list of units
                 case Priorities.LowHP:
-                    scores.Add(((BaseUnit) thingi).GetHP()); break;
+                    scores.Add(((BaseUnit)thingi).GetHP()); break;
 
                 // Building
                 // Uses a list of units
                 case Priorities.Building:
-                    if (((BaseUnit) thingi).unitType == UnitType.Building)
+                    if (((BaseUnit)thingi).unitType == UnitType.Building)
                         scores.Add(1);
                     else
                         scores.Add(0);
@@ -307,7 +307,7 @@ public class BaseEnemy : BaseUnit
                 // Hero
                 // Uses a list of units
                 case Priorities.Hero:
-                    if (((BaseUnit) thingi).unitType == UnitType.Hero)
+                    if (((BaseUnit)thingi).unitType == UnitType.Hero)
                         scores.Add(1);
                     else
                         scores.Add(0);
@@ -335,7 +335,8 @@ public class BaseEnemy : BaseUnit
                     {
                         highPriority.Add(things[i]);
                     }
-                    else if (scores[i] < best) {
+                    else if (scores[i] < best)
+                    {
                         highPriority.Clear();
                         best = scores[i];
                         highPriority.Add(things[i]);

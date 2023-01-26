@@ -57,15 +57,16 @@ public class BaseUnit : MonoBehaviour
         HP -= damage;
         if (HP <= 0)
         {
-            switch (unitType) {
+            switch (unitType)
+            {
                 case UnitType.Hero:
-                    UnitManager.Instance.AllHeroes.Remove((BaseHero) this);
+                    UnitManager.Instance.AllHeroes.Remove((BaseHero)this);
                     break;
                 case UnitType.Building:
-                    UnitManager.Instance.AllBuildings.Remove((BaseBuilding) this);
+                    UnitManager.Instance.AllBuildings.Remove((BaseBuilding)this);
                     break;
                 case UnitType.Enemy:
-                    UnitManager.Instance.AllEnemies.Remove((BaseEnemy) this);
+                    UnitManager.Instance.AllEnemies.Remove((BaseEnemy)this);
                     break;
                 default:
                     break;
@@ -80,7 +81,7 @@ public class BaseUnit : MonoBehaviour
     public void Heal(int health)
     {
         HP += health;
-        if (HP > MAX_HP) 
+        if (HP > MAX_HP)
             HP = MAX_HP;
     }
 
@@ -128,7 +129,8 @@ public class BaseUnit : MonoBehaviour
             {
                 // Check to see if we've explored this tile already
                 if (explored.Contains(space)) { }
-                else {
+                else
+                {
 
                     // Add the tile to list of explored tiles
                     explored.Add(space);
@@ -153,7 +155,7 @@ public class BaseUnit : MonoBehaviour
         }
 
         // Add the ends of all paths to availableSpaces
-        foreach(List<Vector2> path in availablePaths)
+        foreach (List<Vector2> path in availablePaths)
         {
             if (!(availableSpaces.Contains(path.Last())))
                 availableSpaces.Add(path.Last());
@@ -163,7 +165,7 @@ public class BaseUnit : MonoBehaviour
 
     public void ShowHighlightMoveTiles(bool select = true)
     {
-        foreach(Vector2 pos in availableSpaces)
+        foreach (Vector2 pos in availableSpaces)
         {
             Tile space = GridManager.Instance.GetTileAtPosition(pos);
             space.MoveHighlight(select);
@@ -251,7 +253,7 @@ public class BaseUnit : MonoBehaviour
                     yield return new WaitForSeconds(0.15f);
                 }
             }
-        }        
+        }
 
         UnitManager.Instance.UpdatePlayerOptions();
         if (player)
@@ -304,7 +306,7 @@ public class BaseUnit : MonoBehaviour
     virtual public string GetInfo()
     {
         String info = UnitName + "\nHP: " + HP.ToString() + "/" + MAX_HP.ToString() + "\nSpeed: " + SPEED;
-        
+
         return info;
     }
 
@@ -320,6 +322,10 @@ public class BaseUnit : MonoBehaviour
     {
         return HP;
     }
+    public int GetMaxHP()
+    {
+        return MAX_HP;
+    }
     public int GetMovement()
     {
         return movement;
@@ -333,12 +339,12 @@ public class BaseUnit : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        init();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

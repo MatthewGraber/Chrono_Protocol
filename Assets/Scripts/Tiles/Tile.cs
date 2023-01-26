@@ -46,7 +46,8 @@ public abstract class Tile : MonoBehaviour
         if (OccupiedUnit != null)
         {
             // If hero is clicked, select it
-            if (OccupiedUnit.player && !OccupiedUnit.moving) UnitManager.Instance.SetSelectedUnit(OccupiedUnit);
+            if ((OccupiedUnit.player) && !OccupiedUnit.moving)
+                    UnitManager.Instance.SetSelectedUnit(OccupiedUnit);
             else
             {
                 // If enemy is clicked
